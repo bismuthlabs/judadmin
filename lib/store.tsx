@@ -8,12 +8,15 @@ import type {
   Expense, InventoryMovement, Product, Purchase, PurchaseItem, RetailData, Sale, SaleItem,
 } from "@/lib/retail-types";
 
-const STORAGE_KEY = "everyday-essentials-retail-v1";
 type Update = (previous: RetailData) => RetailData;
 
 interface RetailContextValue {
   data: RetailData;
   ready: boolean;
+  authenticated: boolean;
+  authReady: boolean;
+  unlock: (passcode: string) => Promise<void>;
+  logout: () => Promise<void>;
   update: (updater: Update) => void;
   saveProduct: (product: Omit<Product, "id"> & { id?: string }) => string;
   completeSale: (sale: Omit<Sale, "id" | "reference" | "createdAt" | "cashier" | "status">) => Sale;
@@ -36,47 +39,75 @@ function hasRetailShape(value: unknown): value is RetailData {
 export function RetailProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<RetailData>(() => createSeed());
   const [ready, setReady] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const dataRef = useRef(data);
+  const saveQueue = useRef(Promise.resolve());
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      try {
-        const stored = window.localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed: unknown = JSON.parse(stored);
-          if (!hasRetailShape(parsed)) throw new Error("Saved retail data has an invalid format.");
-          dataRef.current = parsed;
-          setData(parsed);
-        }
-      } catch (error) {
-        console.error("Could not restore saved retail data.", error);
-        toast.error("Saved data could not be loaded. The sample workspace has been restored.");
-        try {
-          window.localStorage.removeItem(STORAGE_KEY);
-        } catch (removeError) {
-          console.error("Could not remove invalid saved retail data.", removeError);
-        }
-      }
-      setReady(true);
-    }, 0);
-    return () => window.clearTimeout(timeout);
+    let cancelled = false;
+    fetch("/api/auth/session").then(async (response) => {
+      if (!response.ok) throw new Error("Could not check session.");
+      return response.json() as Promise<{ profile: { id: string; name: string; role: string } | null }>;
+    }).then(async ({ profile }) => {
+      if (cancelled) return;
+      if (!profile) { setAuthenticated(false); return; }
+      const response = await fetch("/api/retail");
+      const result = await response.json() as { data?: unknown; error?: string };
+      if (!response.ok) throw new Error(result.error ?? "Could not load workspace data.");
+      if (!hasRetailShape(result.data)) throw new Error("Supabase returned invalid retail data.");
+      const restored = result.data;
+      restored.users = restored.users.map((user) => user.id === profile.id ? { ...user, name: profile.name, role: profile.role === "Owner" ? "Owner" : "Cashier", active: true } : user);
+      if (!restored.users.some((user) => user.id === profile.id)) restored.users.push({ id: profile.id, name: profile.name, role: profile.role === "Owner" ? "Owner" : "Cashier", active: true });
+      restored.activeUserId = profile.id;
+      dataRef.current = restored;
+      if (!cancelled) { setData(restored); setAuthenticated(true); }
+    }).catch((error: unknown) => {
+      console.error("Could not initialize workspace.", error);
+      if (!cancelled) toast.error(error instanceof Error ? error.message : "Could not connect to the workspace.");
+    }).finally(() => {
+      if (!cancelled) { setAuthReady(true); setReady(true); }
+    });
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (!ready) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (error) {
-      console.error("Could not save retail data to this browser.", error);
-      toast.error("Your browser could not save this update. Check available storage.");
-    }
-  }, [data, ready]);
+  const unlock = useCallback(async (passcode: string) => {
+    const response = await fetch("/api/auth/unlock", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ passcode }) });
+    const result = await response.json() as { profile?: { id: string; name: string; role: string }; error?: string };
+    if (!response.ok || !result.profile) throw new Error(result.error ?? "Could not unlock the workspace.");
+    const dataResponse = await fetch("/api/retail");
+    const state = await dataResponse.json() as { data?: unknown; error?: string };
+    if (!dataResponse.ok) throw new Error(state.error ?? "Could not load workspace data.");
+    if (!hasRetailShape(state.data)) throw new Error("Supabase returned invalid retail data.");
+    const restored = state.data;
+    const { profile } = result;
+    restored.users = restored.users.map((user) => user.id === profile.id ? { ...user, name: profile.name, role: profile.role === "Owner" ? "Owner" : "Cashier", active: true } : user);
+    if (!restored.users.some((user) => user.id === profile.id)) restored.users.push({ id: profile.id, name: profile.name, role: profile.role === "Owner" ? "Owner" : "Cashier", active: true });
+    restored.activeUserId = result.profile.id;
+    dataRef.current = restored;
+    setData(restored);
+    setReady(true);
+    setAuthenticated(true);
+    setAuthReady(true);
+  }, []);
+
+  const logout = useCallback(async () => {
+    await fetch("/api/auth/session", { method: "DELETE" });
+    setAuthenticated(false);
+    setReady(false);
+  }, []);
 
   const update = useCallback((updater: Update) => {
     const next = updater(dataRef.current);
     dataRef.current = next;
     setData(next);
-  }, []);
+    if (authenticated) {
+      saveQueue.current = saveQueue.current.then(async () => {
+        const response = await fetch("/api/retail", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: next }) });
+        if (!response.ok) throw new Error("Supabase could not save this update.");
+      }).catch((error: unknown) => { console.error(error); toast.error("This update could not be saved to Supabase."); });
+    }
+  }, [authenticated]);
 
   const saveProduct = useCallback((input: Omit<Product, "id"> & { id?: string }) => {
     const savedId = input.id ?? newId("prd");
@@ -261,8 +292,8 @@ export function RetailProvider({ children }: { children: React.ReactNode }) {
     });
   }, [update]);
 
-  const value = useMemo(() => ({ data, ready, update, saveProduct, completeSale, adjustStock, recordPurchase, receivePurchase, recordExpense }), [
-    data, ready, update, saveProduct, completeSale, adjustStock, recordPurchase, receivePurchase, recordExpense,
+  const value = useMemo(() => ({ data, ready, authenticated, authReady, unlock, logout, update, saveProduct, completeSale, adjustStock, recordPurchase, receivePurchase, recordExpense }), [
+    data, ready, authenticated, authReady, unlock, logout, update, saveProduct, completeSale, adjustStock, recordPurchase, receivePurchase, recordExpense,
   ]);
 
   return <RetailContext.Provider value={value}>{children}</RetailContext.Provider>;
