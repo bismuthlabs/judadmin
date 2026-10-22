@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  ArrowRight,
   BarChart3,
   Bell,
   ChevronDown,
@@ -12,6 +13,9 @@ import {
   CircleHelp,
   Command,
   CreditCard,
+  Eye,
+  EyeOff,
+  Loader2,
   LayoutDashboard,
   Menu,
   LogOut,
@@ -546,6 +550,7 @@ function UnlockScreen({
   onUnlock: (passcode: string) => Promise<void>;
 }) {
   const [passcode, setPasscode] = useState("");
+  const [showPasscode, setShowPasscode] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -566,29 +571,49 @@ function UnlockScreen({
   }
   return (
     <main className="unlock-screen">
-      <form className="unlock-card" onSubmit={submit}>
-        <span className="loading-mark">E</span>
-        <h1>Unlock your workspace</h1>
-        <p>Enter your operator access code to continue.</p>
-        <label htmlFor="passcode">Access code</label>
-        <input
-          id="passcode"
-          autoComplete="current-password"
-          type="password"
-          value={passcode}
-          onChange={(event) => setPasscode(event.target.value)}
-          required
-          autoFocus
-        />
-        {error && (
-          <div className="unlock-error" role="alert">
-            {error}
+      <div className="unlock-wrap">
+        <form className="unlock-card" onSubmit={submit} aria-label="Unlock workspace">
+          <div className="unlock-control">
+            <div className="unlock-input-wrap">
+              <label className="sr-only" htmlFor="passcode">Access code</label>
+              <input
+                id="passcode"
+                autoComplete="current-password"
+                type={showPasscode ? "text" : "password"}
+                value={passcode}
+                onChange={(event) => setPasscode(event.target.value)}
+                required
+                autoFocus
+                disabled={busy}
+                placeholder="Enter your access code"
+              />
+              <button
+                type="button"
+                className="unlock-visibility"
+                aria-label={showPasscode ? "Hide code" : "Show code"}
+                aria-pressed={showPasscode}
+                onClick={() => setShowPasscode((visible) => !visible)}
+                disabled={busy}
+              >
+                {showPasscode ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            <button
+              className="unlock-submit"
+              type="submit"
+              aria-label="Unlock workspace"
+              disabled={busy}
+            >
+              {busy ? <Loader2 className="unlock-spinner" size={20} /> : <ArrowRight size={20} />}
+            </button>
           </div>
+        </form>
+        {error && (
+          <p className="unlock-error" role="alert">
+            {error}
+          </p>
         )}
-        <button className="button button-primary" disabled={busy}>
-          {busy ? "Verifying…" : "Unlock workspace"}
-        </button>
-      </form>
+      </div>
     </main>
   );
 }
