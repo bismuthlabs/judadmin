@@ -14,16 +14,18 @@ import {
   CreditCard,
   LayoutDashboard,
   Menu,
+  LogOut,
+  Moon,
   Package,
   PackageSearch,
   Receipt,
   Search,
   Settings,
   ShoppingBag,
+  Sun,
   Truck,
   Users,
   X,
-  Zap,
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { useRetail } from "@/lib/store";
@@ -133,6 +135,12 @@ export function RetailApp() {
   );
 
   useEffect(() => {
+    let savedTheme: string | null = null;
+    try { savedTheme = window.localStorage.getItem("retail-theme"); } catch { /* Storage may be disabled by the browser. */ }
+    document.documentElement.dataset.theme = savedTheme === "dark" ? "dark" : "light";
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -143,6 +151,11 @@ export function RetailApp() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  useEffect(() => {
+    const cashierPage = pathname === "/pos" || pathname === "/sales" || pathname.startsWith("/sales/");
+    if (authenticated && currentUser?.role === "Cashier" && !cashierPage) router.replace("/pos");
+  }, [authenticated, currentUser?.role, pathname, router]);
 
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
@@ -188,26 +201,25 @@ export function RetailApp() {
   };
   const closeMobile = () => setMobileOpen(false);
   const canManage = currentUser?.role === "Owner";
+  const toggleTheme = () => {
+    const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nextTheme;
+    try { window.localStorage.setItem("retail-theme", nextTheme); } catch { /* The theme still applies for this session. */ }
+  };
 
-  const restricted =
-    !canManage &&
-    /^\/(products|categories|inventory|purchases|expenses|reports|settings|suppliers|customers)(\/|$)/.test(
-      pathname,
-    );
+  const cashierPage = pathname === "/pos" || pathname === "/sales" || pathname.startsWith("/sales/");
+  const restricted = !canManage && !cashierPage;
   const content = restricted ? (
     <div className="page-content">
       <section className="panel access-notice">
         <span className="access-notice-icon">
           <CircleHelp size={20} />
         </span>
-        <h1>Owner access required</h1>
+        <h1>{canManage ? "Page not found" : "Opening the register"}</h1>
         <p>
-          This section is available to owner accounts. Lock the workspace to
-          sign in with an owner access code.
+          {canManage ? "This workspace page could not be found." : "Cashier accounts can use the register and their own sales history."}
         </p>
-        <button className="button button-primary" onClick={() => void logout()}>
-          Lock workspace
-        </button>
+        {!canManage && <button className="button button-primary" onClick={() => router.replace("/pos")}>Go to register</button>}
       </section>
     </div>
   ) : pathname === "/" ? (
@@ -272,10 +284,10 @@ export function RetailApp() {
           <ChevronDown size={15} />
         </div>
         <nav className="sidebar-nav" aria-label="Main navigation">
-          {navigation.map((group, groupIndex) => (
+          {navigation.filter((group) => canManage || group.items.some((item) => item.href === "/pos" || item.href === "/sales")).map((group, groupIndex) => (
             <div className="nav-group" key={`${group.label}-${groupIndex}`}>
               <span className="nav-group-label">{group.label}</span>
-              {group.items.map((item) => {
+              {group.items.filter((item) => canManage || item.href === "/pos" || item.href === "/sales").map((item) => {
                 const active =
                   item.href === "/"
                     ? pathname === "/"
@@ -340,15 +352,11 @@ export function RetailApp() {
               <strong>{currentUser?.name ?? "Operator"}</strong>
               <small>{currentUser?.role ?? "Cashier"}</small>
             </span>
-            <button
-              type="button"
-              aria-label="Lock workspace"
-              className="more-button"
-              onClick={() => void logout()}
-            >
-              ↪
-            </button>
           </div>
+          <button type="button" className="sidebar-logout" onClick={() => void logout()}>
+            <LogOut size={15} />
+            <span>Log out</span>
+          </button>
         </div>
         <button
           className="sidebar-collapse"
@@ -382,6 +390,10 @@ export function RetailApp() {
             <span className="topbar-current">{routeLabel(pathname)}</span>
           </div>
           <div className="topbar-actions">
+            <IconButton label="Toggle dark mode" onClick={toggleTheme}>
+              <Sun className="theme-icon-light" size={17} />
+              <Moon className="theme-icon-dark" size={17} />
+            </IconButton>
             <button
               type="button"
               className="global-search"
@@ -393,7 +405,7 @@ export function RetailApp() {
                 <Command size={11} /> K
               </kbd>
             </button>
-            <div className="topbar-popover-wrap">
+            {canManage && <div className="topbar-popover-wrap">
               <IconButton
                 label={`Notifications, ${lowStock.length} low stock items`}
                 onClick={() => {
@@ -435,7 +447,7 @@ export function RetailApp() {
                   )}
                 </div>
               )}
-            </div>
+            </div>}
             <div className="topbar-popover-wrap">
               <div className="profile-trigger">
                 <span className="user-avatar small">
@@ -454,9 +466,6 @@ export function RetailApp() {
           <span>
             © {new Date().getFullYear()} {data.settings.name}
           </span>
-          {/* <span>
-            <Zap size={12} /> Supabase workspace
-          </span> */}
         </footer>
       </div>
       {searchOpen && (

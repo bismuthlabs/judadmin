@@ -22,6 +22,7 @@ export async function businessQuery<T>(path: string, init: RequestInit = {}): Pr
     cache: "no-store",
   });
   if (!response.ok) throw new Error(`Supabase request failed (${response.status}): ${await response.text()}`);
-  if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+  const responseText = await response.text();
+  if (!responseText.trim()) return undefined as T;
+  return JSON.parse(responseText) as T;
 }
