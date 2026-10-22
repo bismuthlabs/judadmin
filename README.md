@@ -27,3 +27,5 @@ npm run build
 - Receipt printing uses the browser print dialog; choose “Save as PDF” to download a PDF.
 - Profit reports estimate gross profit using sale-time item costs and subtract paid operating expenses dated in the selected period. Unpaid expenses and accrual accounting are excluded.
 - Data in local storage is browser-local and is not a secure or production database.
+
+
