@@ -1,6 +1,6 @@
 import "server-only";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export function hasSupabaseConfig() {
@@ -8,7 +8,7 @@ export function hasSupabaseConfig() {
 }
 
 export async function businessQuery<T>(path: string, init: RequestInit = {}): Promise<T> {
-  if (!supabaseUrl || !serviceKey) throw new Error("Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+  if (!supabaseUrl || !serviceKey) throw new Error("Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
   const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
     ...init,
     headers: {
