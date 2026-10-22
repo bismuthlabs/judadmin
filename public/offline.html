@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0e1724">
+    <title>Offline | Everyday Retail</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { display: grid; min-height: 100vh; place-items: center; margin: 0; padding: 24px; background: #0b111b; color: #e6edf7; font: 16px/1.5 Arial, sans-serif; }
+      main { width: min(100%, 420px); padding: 32px; border: 1px solid #263448; border-radius: 18px; background: #121c2a; text-align: center; }
+      .mark { display: grid; width: 62px; height: 62px; place-items: center; margin: 0 auto 20px; border-radius: 18px; background: #19563a; color: white; font-size: 34px; font-weight: 700; }
+      h1 { margin: 0 0 9px; font-size: 23px; }
+      p { margin: 0; color: #aebbd0; }
+      button { min-height: 42px; margin-top: 22px; padding: 0 18px; border: 0; border-radius: 9px; background: #55c98b; color: #0b2116; font-size: 14px; font-weight: 700; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">E</div>
+      <h1>You’re offline</h1>
+      <p>Reconnect to the internet to open your retail workspace and sync the latest business data.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

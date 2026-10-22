@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   CircleHelp,
   Command,
   CreditCard,
+  Download,
   Eye,
   EyeOff,
   Loader2,
@@ -78,6 +79,11 @@ const navigation = [
   },
 ];
 
+type DeferredInstallPrompt = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
+
 const pageNames: Record<string, string> = {
   "/": "Dashboard",
   "/pos": "New sale",
@@ -133,6 +139,7 @@ export function RetailApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const installPrompt = useRef<DeferredInstallPrompt | null>(null);
   const currentUser = data.users.find((item) => item.id === data.activeUserId);
   const lowStock = data.products.filter(
     (item) => !item.archived && item.stock <= item.reorderLevel,
@@ -142,6 +149,25 @@ export function RetailApp() {
     let savedTheme: string | null = null;
     try { savedTheme = window.localStorage.getItem("retail-theme"); } catch { /* Storage may be disabled by the browser. */ }
     document.documentElement.dataset.theme = savedTheme === "dark" ? "dark" : "light";
+  }, []);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+      void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error: unknown) => {
+        console.error("Could not register the app service worker.", error);
+      });
+    }
+    const onBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      installPrompt.current = event as DeferredInstallPrompt;
+    };
+    const onAppInstalled = () => { installPrompt.current = null; };
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+    window.addEventListener("appinstalled", onAppInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", onAppInstalled);
+    };
   }, []);
 
   useEffect(() => {
@@ -209,6 +235,34 @@ export function RetailApp() {
     const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = nextTheme;
     try { window.localStorage.setItem("retail-theme", nextTheme); } catch { /* The theme still applies for this session. */ }
+  };
+  const installApp = async () => {
+    const installed = window.matchMedia("(display-mode: standalone)").matches
+      || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (installed) {
+      toast.message("Everyday Retail is already installed on this device.");
+      return;
+    }
+    if (installPrompt.current) {
+      const prompt = installPrompt.current;
+      await prompt.prompt();
+      const choice = await prompt.userChoice;
+      if (choice.outcome === "accepted") installPrompt.current = null;
+      return;
+    }
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+      toast.message("Add Everyday Retail to your Home Screen", {
+        description: "In Safari, tap Share, choose Add to Home Screen, then tap Add.",
+        duration: 9000,
+      });
+    } else {
+      toast.message("Install Everyday Retail from your browser menu", {
+        description: "Choose Install app or Add to Home screen in the browser menu.",
+        duration: 8000,
+      });
+    }
   };
 
   const cashierPage = pathname === "/pos" || pathname === "/sales" || pathname.startsWith("/sales/");
@@ -361,6 +415,10 @@ export function RetailApp() {
             <LogOut size={15} />
             <span>Log out</span>
           </button>
+          <button type="button" className="sidebar-install" onClick={() => void installApp()}>
+            <Download size={15} />
+            <span>Install app</span>
+          </button>
         </div>
         <button
           className="sidebar-collapse"
@@ -394,6 +452,9 @@ export function RetailApp() {
             <span className="topbar-current">{routeLabel(pathname)}</span>
           </div>
           <div className="topbar-actions">
+            <IconButton label="Install app" onClick={() => void installApp()}>
+              <Download size={17} />
+            </IconButton>
             <IconButton label="Toggle dark mode" onClick={toggleTheme}>
               <Sun className="theme-icon-light" size={17} />
               <Moon className="theme-icon-dark" size={17} />

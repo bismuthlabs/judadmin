@@ -424,6 +424,26 @@ textarea:focus-visible {
   background: #fbf3f2;
   color: #a44740;
 }
+.sidebar-install {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 9px;
+  margin-top: 4px;
+  border: 1px solid #dce9df;
+  border-radius: 7px;
+  background: #f1f7f2;
+  color: #3d704e;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+  text-align: left;
+}
+.sidebar-install:hover {
+  background: #e7f2e9;
+}
 .user-avatar {
   display: grid;
   flex: 0 0 auto;
@@ -529,6 +549,13 @@ textarea:focus-visible {
   padding: 0;
 }
 .sidebar-collapsed .sidebar-logout span {
+  display: none;
+}
+.sidebar-collapsed .sidebar-install {
+  justify-content: center;
+  padding: 0;
+}
+.sidebar-collapsed .sidebar-install span {
   display: none;
 }
 .sidebar-collapsed .sidebar-collapse svg {
@@ -2962,7 +2989,8 @@ td strong {
   .sidebar-collapsed .nav-count,
   .sidebar-collapsed .sidebar-help,
   .sidebar-collapsed .user-copy,
-  .sidebar-collapsed .sidebar-logout span {
+  .sidebar-collapsed .sidebar-logout span,
+  .sidebar-collapsed .sidebar-install span {
     display: flex;
   }
   .sidebar-collapsed .store-switcher {
@@ -3495,6 +3523,14 @@ td strong {
   background: #172334;
   color: #cbd6e5;
 }
+:root[data-theme="dark"] .sidebar-install {
+  border-color: #28513c;
+  background: #153326;
+  color: #91dfb1;
+}
+:root[data-theme="dark"] .sidebar-install:hover {
+  background: #1b4431;
+}
 :root[data-theme="dark"] .sidebar-logout:hover {
   border-color: #573a3a;
   background: #342323;
@@ -3526,6 +3562,11 @@ td strong {
 :root[data-theme="dark"] .receipt-paper {
   background: #f8fafc;
   color: #26302a;
+}
+:root[data-theme="dark"] .recharts-default-tooltip {
+  border-color: var(--line) !important;
+  background: var(--surface) !important;
+  color: var(--text);
 }
 :root[data-theme="dark"] .theme-icon-light {
   display: none;
