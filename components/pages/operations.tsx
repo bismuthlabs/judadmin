@@ -2130,7 +2130,7 @@ export function ExpensesPage() {
             onChange={(event) =>
               setForm({ ...form, title: event.target.value })
             }
-            placeholder="e.g. Electricity top-up"
+            placeholder="e.g. Electricity top-up, cleaning supplies, staff lunch, water bill, etc."
           />
           <div className="form-grid">
             <SelectField
