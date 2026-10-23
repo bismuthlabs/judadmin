@@ -98,6 +98,8 @@ export function InventoryPage() {
                 event.preventDefault();
                 if (!selectedProduct)
                   return toast.error("Select a product to adjust.");
+                if (!Number.isInteger(count) || count < 0)
+                  return toast.error("Counted quantity must be a non-negative whole number.");
                 try {
                   adjustStock(productId, count, reason, notes);
                   toast.success(`Stock adjusted for ${selectedProduct.name}`);
@@ -141,18 +143,21 @@ export function InventoryPage() {
                 type="number"
                 min="0"
                 step="1"
-                value={count}
-                onChange={(event) => setCount(Number(event.target.value))}
+                value={Number.isFinite(count) ? count : ""}
+                onChange={(event) =>
+                  setCount(event.target.value === "" ? Number.NaN : Number(event.target.value))
+                }
                 required
               />
               {selectedProduct && (
                 <div
-                  className={`adjustment-difference ${count - selectedProduct.stock < 0 ? "negative" : "positive"}`}
+                  className={`adjustment-difference ${!Number.isFinite(count) ? "muted" : count - selectedProduct.stock < 0 ? "negative" : "positive"}`}
                 >
                   <span>Adjustment</span>
                   <strong>
-                    {count - selectedProduct.stock > 0 ? "+" : ""}
-                    {count - selectedProduct.stock} units
+                    {Number.isFinite(count)
+                      ? `${count - selectedProduct.stock > 0 ? "+" : ""}${count - selectedProduct.stock} units`
+                      : "Enter counted quantity"}
                   </strong>
                 </div>
               )}
@@ -717,6 +722,7 @@ export function PurchasesPage() {
         (typeof item.unitCost === "number" ? item.unitCost : 0),
     0,
   );
+  const paidNow = Number.isFinite(amountPaid) ? amountPaid : 0;
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [currentMonth] = useState(() => new Date().getMonth());
 
@@ -741,6 +747,8 @@ export function PurchasesPage() {
               (item) => item.id === supplierId && !item.archived,
             );
             if (!supplier) return toast.error("Choose a supplier.");
+            if (!Number.isFinite(amountPaid) || amountPaid < 0 || amountPaid > total)
+              return toast.error("Amount paid must be between zero and the purchase total.");
             if (
               lines.some(
                 (line) =>
@@ -985,15 +993,18 @@ export function PurchasesPage() {
                   min="0"
                   max={total}
                   step="0.01"
-                  value={amountPaid}
-                  onChange={(event) => setAmountPaid(Number(event.target.value))}
+                  required
+                  value={Number.isFinite(amountPaid) ? amountPaid : ""}
+                  onChange={(event) =>
+                    setAmountPaid(event.target.value === "" ? Number.NaN : Number(event.target.value))
+                  }
                 />
               </div>
               <div className="purchase-outstanding">
                 <span>Outstanding balance</span>
                 <strong>
                   {money(
-                    Math.max(0, total - amountPaid),
+                    Math.max(0, total - paidNow),
                     data.settings.currency,
                   )}
                 </strong>
@@ -1131,11 +1142,15 @@ export function PurchasesPage() {
                       min="0"
                       max={item.quantity - item.received}
                       step="1"
-                      value={receivedMore[item.productId] ?? 0}
+                      value={Number.isFinite(receivedMore[item.productId])
+                        ? receivedMore[item.productId]
+                        : ""}
                       onChange={(event) =>
                         setReceivedMore((previous) => ({
                           ...previous,
-                          [item.productId]: Number(event.target.value),
+                          [item.productId]: event.target.value === ""
+                            ? Number.NaN
+                            : Number(event.target.value),
                         }))
                       }
                     />
@@ -1145,7 +1160,15 @@ export function PurchasesPage() {
             <Button
               onClick={() => {
                 try {
-                  receivePurchase(purchase.id, receivedMore);
+                  receivePurchase(
+                    purchase.id,
+                    Object.fromEntries(
+                      Object.entries(receivedMore).map(([productId, quantity]) => [
+                        productId,
+                        Number.isFinite(quantity) ? quantity : 0,
+                      ]),
+                    ),
+                  );
                   toast.success("Delivery quantities recorded");
                   setReceivedMore({});
                 } catch (error) {
@@ -1177,12 +1200,16 @@ export function PurchasesPage() {
                 min="0.01"
                 max={purchase.total - purchase.amountPaid}
                 step="0.01"
-                value={paymentMore || ""}
-                onChange={(event) => setPaymentMore(Number(event.target.value))}
+                value={Number.isFinite(paymentMore) ? paymentMore : ""}
+                onChange={(event) =>
+                  setPaymentMore(event.target.value === "" ? Number.NaN : Number(event.target.value))
+                }
               />
               <Button
-                disabled={paymentMore <= 0}
+                disabled={!Number.isFinite(paymentMore) || paymentMore <= 0}
                 onClick={() => {
+                  if (!Number.isFinite(paymentMore) || paymentMore <= 0)
+                    return toast.error("Enter a payment amount greater than zero.");
                   if (paymentMore > purchase.total - purchase.amountPaid)
                     return toast.error(
                       "Payment exceeds the outstanding balance.",
@@ -1794,6 +1821,8 @@ export function ExpensesPage() {
   };
   const save = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!Number.isFinite(form.amount) || form.amount <= 0)
+      return toast.error("Enter an expense amount greater than zero.");
     if (expenseLock.current) return;
     expenseLock.current = true;
     try {
@@ -2121,9 +2150,12 @@ export function ExpensesPage() {
               min="0.01"
               step="0.01"
               required
-              value={form.amount || ""}
+              value={Number.isFinite(form.amount) ? form.amount : ""}
               onChange={(event) =>
-                setForm({ ...form, amount: Number(event.target.value) })
+                setForm({
+                  ...form,
+                  amount: event.target.value === "" ? Number.NaN : Number(event.target.value),
+                })
               }
             />
             <Field

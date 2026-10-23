@@ -39,7 +39,9 @@ export function SalesPage() {
   const [page, setPage] = useState(1);
 
   const subtotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-  const total = Math.max(0, subtotal - discount);
+  const appliedDiscount = Number.isFinite(discount) ? discount : 0;
+  const cashReceived = Number.isFinite(received) ? received : 0;
+  const total = Math.max(0, subtotal - appliedDiscount);
   const filteredProducts = data.products.filter((item) => !item.archived && item.stock > 0
     && (category === "All categories" || item.category === category)
     && `${item.name} ${item.sku} ${item.barcode}`.toLowerCase().includes(productSearch.toLowerCase()));
@@ -84,7 +86,7 @@ export function SalesPage() {
     if (checkoutLock.current) return;
     if (!cart.length) return toast.error("Add products to the cart first.");
     if (total <= 0) return toast.error("Sale total must be greater than zero.");
-    if (payMethod === "Cash" && received < total) return toast.error("Amount received must cover the amount due.");
+    if (payMethod === "Cash" && (!Number.isFinite(received) || received < total)) return toast.error("Amount received must cover the amount due.");
     checkoutLock.current = true;
     setBusy(true);
     try {
@@ -94,11 +96,11 @@ export function SalesPage() {
         customerName: customer?.name ?? "Walk-in Customer",
         items: cart.map((item) => ({ ...item })),
         subtotal,
-        discount,
+        discount: appliedDiscount,
         total,
         paymentMethod: payMethod,
-        amountReceived: payMethod === "Cash" ? received : total,
-        change: payMethod === "Cash" ? received - total : 0,
+        amountReceived: payMethod === "Cash" ? cashReceived : total,
+        change: payMethod === "Cash" ? cashReceived - total : 0,
       });
       setPaymentOpen(false);
       setReceiptSale(sale);
@@ -159,7 +161,7 @@ export function SalesPage() {
           </div>)}
           {cart.length === 0 && <div className="cart-empty"><span><ShoppingBag size={21} /></span><strong>Your cart is empty</strong><p>Select products to start a sale.</p></div>}
         </div>
-        <div className="cart-summary"><div><span>Subtotal</span><strong>{money(subtotal, data.settings.currency)}</strong></div><label><span>Discount</span><span className="discount-input"><span>{data.settings.currency}</span><input aria-label="Discount amount" type="number" min="0" max={subtotal} step="0.01" value={discount || ""} onChange={(event) => setDiscount(Math.min(subtotal, Math.max(0, Number(event.target.value))))} placeholder="0.00" /></span></label><div className="cart-total"><span>Total due</span><strong>{money(total, data.settings.currency)}</strong></div>
+        <div className="cart-summary"><div><span>Subtotal</span><strong>{money(subtotal, data.settings.currency)}</strong></div><label><span>Discount</span><span className="discount-input"><span>{data.settings.currency}</span><input aria-label="Discount amount" type="number" min="0" max={subtotal} step="0.01" value={Number.isFinite(discount) && discount !== 0 ? discount : ""} onChange={(event) => setDiscount(event.target.value === "" ? Number.NaN : Math.min(subtotal, Math.max(0, Number(event.target.value))))} placeholder="0.00" /></span></label><div className="cart-total"><span>Total due</span><strong>{money(total, data.settings.currency)}</strong></div>
           <Button className="checkout-button" disabled={!cart.length} onClick={() => { setReceived(total); setPaymentOpen(true); }}>Continue to payment <ArrowLeft className="checkout-arrow" size={16} /></Button>
         </div>
       </Panel>
@@ -171,7 +173,7 @@ export function SalesPage() {
       <form onSubmit={checkout} className="modal-form">
         <div className="payment-due"><span>Amount due</span><strong>{money(total, data.settings.currency)}</strong></div>
         <SelectField label="Payment method" value={payMethod} onChange={(event) => setPayMethod(event.target.value as PaymentMethod)}>{paymentMethods.map((method) => <option key={method}>{method}</option>)}</SelectField>
-        {payMethod === "Cash" ? <><Field label={`Cash received (${data.settings.currency})`} type="number" min={total} step="0.01" required value={received || ""} onChange={(event) => setReceived(Number(event.target.value))} /><div className="change-due"><span>Change due</span><strong>{money(Math.max(0, received - total), data.settings.currency)}</strong></div></> : <div className="inline-alert blue">Record this {payMethod} payment as confirmed only after you have verified it outside this prototype.</div>}
+        {payMethod === "Cash" ? <><Field label={`Cash received (${data.settings.currency})`} type="number" min={total} step="0.01" required value={Number.isFinite(received) ? received : ""} onChange={(event) => setReceived(event.target.value === "" ? Number.NaN : Number(event.target.value))} /><div className="change-due"><span>Change due</span><strong>{money(Math.max(0, cashReceived - total), data.settings.currency)}</strong></div></> : <div className="inline-alert blue">Record this {payMethod} payment as confirmed only after you have verified it outside this prototype.</div>}
         <div className="modal-actions"><Button type="button" variant="secondary" onClick={() => setPaymentOpen(false)}>Back to sale</Button><Button type="submit" disabled={busy}>{busy ? "Completing..." : "Complete sale"}</Button></div>
       </form>
     </Modal>
