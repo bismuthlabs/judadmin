@@ -222,8 +222,8 @@ export function RetailApp() {
   if (!authReady || (authenticated && !ready))
     return (
       <main className="app-loading">
-        <div className="loading-mark">E</div>
-        <strong>Everyday Essentials</strong>
+        {/* <div className="loading-mark">E</div> */}
+        {/* <strong>Everyday Essentials</strong> */}
         <span>Connecting to your workspace…</span>
       </main>
     );
@@ -322,7 +322,7 @@ export function RetailApp() {
         <Link className="brand" href="/" onClick={closeMobile}>
           <span className="brand-mark">E</span>
           <span className="brand-copy">
-            <strong>everyday</strong>
+            {/* <strong>everyday</strong> */}
             <small>RETAIL WORKSPACE</small>
           </span>
           <button
@@ -338,10 +338,10 @@ export function RetailApp() {
           </button>
         </Link>
         <div className="store-switcher">
-          <span className="store-avatar">E</span>
+          <span className="store-avatar">DJ</span>
           <span>
             <strong>{data.settings.name}</strong>
-            <small>Retail store</small>
+            {/* <small>Retail store</small> */}
           </span>
           {/* <ChevronDown size={15} /> */}
         </div>
