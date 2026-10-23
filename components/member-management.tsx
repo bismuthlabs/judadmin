@@ -230,7 +230,8 @@ export function MemberManagement({ activeUserId }: { activeUserId: string }) {
               </tr>
             </thead>
             <tbody>
-              {members.map((member) => (
+              {/* Keep the developer account ("Dev") out of the team members list. */}
+              {members.filter((member) => member.name !== "Dev").map((member) => (
                 <tr key={member.id}>
                   <td>
                     <strong>{member.name}</strong>
