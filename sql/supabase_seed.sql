@@ -1,19 +1,1314 @@
--- Run after supabase_master.sql in a fresh project.
--- For an existing JSONB installation, run supabase_migration_0002_relational.sql instead.
-insert into business.profiles(id,name,role,active) values
-('usr-owner','Akosua Mensah','Owner',true),
-('usr-cashier-1','Kofi Asare','Cashier',true),
-('usr-cashier-2','Efua Boateng','Cashier',true)
-on conflict(id) do update set name=excluded.name,role=excluded.role,active=excluded.active;
-
--- Temporary owner code: ChangeMe-Now-2026! Replace/deactivate it after setup.
-insert into business.access_codes(profile_id,hashed_code,active)
-select 'usr-owner',crypt('ChangeMe-Now-2026!',gen_salt('bf',12)),true
-where not exists(select 1 from business.access_codes where profile_id='usr-owner' and active);
-
--- Insert the sample workspace only into an empty database.
-do $seed$ begin
-  if not exists(select 1 from business.products) then
-    perform business.replace_retail_data($data${"products":[{"id":"prd-1","name":"Bottled Water 500ml","sku":"WAT-001","category":"Beverages","description":"","barcode":"","costPrice":3,"sellingPrice":5,"stock":120,"reorderLevel":30,"archived":false},{"id":"prd-2","name":"Soft Drink 500ml","sku":"DRK-001","category":"Beverages","description":"","barcode":"","costPrice":5,"sellingPrice":8,"stock":65,"reorderLevel":20,"archived":false},{"id":"prd-3","name":"Biscuits","sku":"SNK-001","category":"Snacks","description":"","barcode":"","costPrice":2.5,"sellingPrice":4,"stock":8,"reorderLevel":25,"archived":false},{"id":"prd-4","name":"Washing Powder","sku":"HOU-001","category":"Household Products","description":"","barcode":"","costPrice":12,"sellingPrice":16,"stock":0,"reorderLevel":10,"archived":false},{"id":"prd-5","name":"Bathing Soap","sku":"PER-001","category":"Personal Care","description":"","barcode":"","costPrice":4,"sellingPrice":6,"stock":48,"reorderLevel":15,"archived":false},{"id":"prd-6","name":"Exercise Book","sku":"STA-001","category":"Stationery","description":"","barcode":"","costPrice":6,"sellingPrice":9,"stock":32,"reorderLevel":10,"archived":false},{"id":"prd-7","name":"Long Grain Rice 1kg","sku":"GRO-001","category":"Groceries","description":"","barcode":"","costPrice":18,"sellingPrice":24,"stock":42,"reorderLevel":12,"archived":false},{"id":"prd-8","name":"Palm Oil 1L","sku":"GRO-002","category":"Groceries","description":"","barcode":"","costPrice":22,"sellingPrice":29,"stock":18,"reorderLevel":8,"archived":false},{"id":"prd-9","name":"Toothpaste 100ml","sku":"PER-002","category":"Personal Care","description":"","barcode":"","costPrice":8,"sellingPrice":12,"stock":24,"reorderLevel":10,"archived":false},{"id":"prd-10","name":"Corn Flakes 500g","sku":"GRO-003","category":"Groceries","description":"","barcode":"","costPrice":25,"sellingPrice":34,"stock":15,"reorderLevel":8,"archived":false},{"id":"prd-11","name":"Laundry Bar","sku":"HOU-002","category":"Household Products","description":"","barcode":"","costPrice":7,"sellingPrice":10,"stock":21,"reorderLevel":10,"archived":false},{"id":"prd-12","name":"Chocolate Wafer","sku":"SNK-002","category":"Snacks","description":"","barcode":"","costPrice":3,"sellingPrice":5,"stock":36,"reorderLevel":12,"archived":false}],"customers":[{"id":"cus-1","name":"Ama Mensah","phone":"024 555 0192","email":"ama.m@example.com","notes":""},{"id":"cus-2","name":"Kojo Asante","phone":"020 441 7730","email":"","notes":""},{"id":"cus-3","name":"Abena Owusu","phone":"055 218 9031","email":"","notes":""}],"suppliers":[{"id":"sup-1","name":"Accra Wholesale Mart","phone":"030 222 4581","email":"orders@accrawholesale.gh","address":"Makola Market, Accra","notes":"","archived":false},{"id":"sup-2","name":"Golden Harvest Distributors","phone":"024 817 6004","email":"","address":"Tema Industrial Area","notes":"","archived":false},{"id":"sup-3","name":"Coastal Consumer Goods","phone":"050 300 1762","email":"","address":"Kaneshie, Accra","notes":"","archived":false}],"sales":[{"id":"sale-1","reference":"EE-002601","createdAt":"2026-10-22T05:15:00.000Z","customerId":"cus-1","customerName":"Ama Mensah","cashier":"Kofi Asare","items":[{"productId":"prd-3","name":"Biscuits","sku":"SNK-001","quantity":2,"unitPrice":4,"unitCost":2.5}],"subtotal":8,"discount":0,"total":8,"paymentMethod":"Cash","amountReceived":8,"change":0,"status":"Completed"},{"id":"sale-2","reference":"EE-002602","createdAt":"2026-10-22T08:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-1","name":"Bottled Water 500ml","sku":"WAT-001","quantity":3,"unitPrice":5,"unitCost":3}],"subtotal":15,"discount":0,"total":15,"paymentMethod":"Mobile Money","amountReceived":15,"change":0,"status":"Completed"},{"id":"sale-3","reference":"EE-002603","createdAt":"2026-10-21T04:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-2","name":"Soft Drink 500ml","sku":"DRK-001","quantity":1,"unitPrice":8,"unitCost":5}],"subtotal":8,"discount":0,"total":8,"paymentMethod":"Card","amountReceived":8,"change":0,"status":"Completed"},{"id":"sale-4","reference":"EE-002604","createdAt":"2026-10-21T07:15:00.000Z","customerId":"cus-1","customerName":"Ama Mensah","cashier":"Efua Boateng","items":[{"productId":"prd-5","name":"Bathing Soap","sku":"PER-001","quantity":2,"unitPrice":6,"unitCost":4}],"subtotal":12,"discount":0,"total":12,"paymentMethod":"Cash","amountReceived":12,"change":0,"status":"Completed"},{"id":"sale-5","reference":"EE-002605","createdAt":"2026-10-20T03:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Kofi Asare","items":[{"productId":"prd-7","name":"Long Grain Rice 1kg","sku":"GRO-001","quantity":1,"unitPrice":24,"unitCost":18}],"subtotal":24,"discount":0,"total":24,"paymentMethod":"Mobile Money","amountReceived":24,"change":0,"status":"Completed"},{"id":"sale-6","reference":"EE-002606","createdAt":"2026-10-20T09:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-1","name":"Bottled Water 500ml","sku":"WAT-001","quantity":4,"unitPrice":5,"unitCost":3}],"subtotal":20,"discount":0,"total":20,"paymentMethod":"Card","amountReceived":20,"change":0,"status":"Completed"},{"id":"sale-7","reference":"EE-002607","createdAt":"2026-10-19T06:15:00.000Z","customerId":"cus-1","customerName":"Ama Mensah","cashier":"Efua Boateng","items":[{"productId":"prd-3","name":"Biscuits","sku":"SNK-001","quantity":3,"unitPrice":4,"unitCost":2.5}],"subtotal":12,"discount":0,"total":12,"paymentMethod":"Cash","amountReceived":12,"change":0,"status":"Completed"},{"id":"sale-8","reference":"EE-002608","createdAt":"2026-10-19T02:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-9","name":"Toothpaste 100ml","sku":"PER-002","quantity":1,"unitPrice":12,"unitCost":8}],"subtotal":12,"discount":0,"total":12,"paymentMethod":"Mobile Money","amountReceived":12,"change":0,"status":"Completed"},{"id":"sale-9","reference":"EE-002609","createdAt":"2026-10-18T04:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Kofi Asare","items":[{"productId":"prd-6","name":"Exercise Book","sku":"STA-001","quantity":2,"unitPrice":9,"unitCost":6}],"subtotal":18,"discount":0,"total":18,"paymentMethod":"Card","amountReceived":18,"change":0,"status":"Completed"},{"id":"sale-10","reference":"EE-002610","createdAt":"2026-10-18T07:15:00.000Z","customerId":"cus-1","customerName":"Ama Mensah","cashier":"Efua Boateng","items":[{"productId":"prd-2","name":"Soft Drink 500ml","sku":"DRK-001","quantity":3,"unitPrice":8,"unitCost":5}],"subtotal":24,"discount":0,"total":24,"paymentMethod":"Cash","amountReceived":24,"change":0,"status":"Completed"},{"id":"sale-11","reference":"EE-002611","createdAt":"2026-10-17T03:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-1","name":"Bottled Water 500ml","sku":"WAT-001","quantity":2,"unitPrice":5,"unitCost":3}],"subtotal":10,"discount":0,"total":10,"paymentMethod":"Mobile Money","amountReceived":10,"change":0,"status":"Completed"},{"id":"sale-12","reference":"EE-002612","createdAt":"2026-10-17T05:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-12","name":"Chocolate Wafer","sku":"SNK-002","quantity":2,"unitPrice":5,"unitCost":3}],"subtotal":10,"discount":0,"total":10,"paymentMethod":"Card","amountReceived":10,"change":0,"status":"Completed"},{"id":"sale-13","reference":"EE-002613","createdAt":"2026-10-16T02:15:00.000Z","customerId":"cus-1","customerName":"Ama Mensah","cashier":"Kofi Asare","items":[{"productId":"prd-7","name":"Long Grain Rice 1kg","sku":"GRO-001","quantity":1,"unitPrice":24,"unitCost":18}],"subtotal":24,"discount":0,"total":24,"paymentMethod":"Cash","amountReceived":24,"change":0,"status":"Completed"},{"id":"sale-14","reference":"EE-002614","createdAt":"2026-10-15T06:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-5","name":"Bathing Soap","sku":"PER-001","quantity":3,"unitPrice":6,"unitCost":4}],"subtotal":18,"discount":0,"total":18,"paymentMethod":"Mobile Money","amountReceived":18,"change":0,"status":"Completed"},{"id":"sale-15","reference":"EE-002615","createdAt":"2026-10-14T03:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-8","name":"Palm Oil 1L","sku":"GRO-002","quantity":1,"unitPrice":29,"unitCost":22}],"subtotal":29,"discount":0,"total":29,"paymentMethod":"Card","amountReceived":29,"change":0,"status":"Completed"},{"id":"sale-16","reference":"EE-002616","createdAt":"2026-10-13T08:15:00.000Z","customerId":"cus-1","customerName":"Ama Mensah","cashier":"Efua Boateng","items":[{"productId":"prd-1","name":"Bottled Water 500ml","sku":"WAT-001","quantity":5,"unitPrice":5,"unitCost":3}],"subtotal":25,"discount":0,"total":25,"paymentMethod":"Cash","amountReceived":25,"change":0,"status":"Completed"},{"id":"sale-17","reference":"EE-002617","createdAt":"2026-10-12T02:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Kofi Asare","items":[{"productId":"prd-10","name":"Corn Flakes 500g","sku":"GRO-003","quantity":1,"unitPrice":34,"unitCost":25}],"subtotal":34,"discount":0,"total":34,"paymentMethod":"Mobile Money","amountReceived":34,"change":0,"status":"Completed"},{"id":"sale-18","reference":"EE-002618","createdAt":"2026-10-11T04:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-11","name":"Laundry Bar","sku":"HOU-002","quantity":2,"unitPrice":10,"unitCost":7}],"subtotal":20,"discount":0,"total":20,"paymentMethod":"Card","amountReceived":20,"change":0,"status":"Completed"},{"id":"sale-19","reference":"EE-002619","createdAt":"2026-10-10T05:15:00.000Z","customerId":"cus-1","customerName":"Ama Mensah","cashier":"Efua Boateng","items":[{"productId":"prd-2","name":"Soft Drink 500ml","sku":"DRK-001","quantity":3,"unitPrice":8,"unitCost":5}],"subtotal":24,"discount":0,"total":24,"paymentMethod":"Cash","amountReceived":24,"change":0,"status":"Completed"},{"id":"sale-20","reference":"EE-002620","createdAt":"2026-10-09T03:15:00.000Z","customerId":null,"customerName":"Walk-in Customer","cashier":"Efua Boateng","items":[{"productId":"prd-6","name":"Exercise Book","sku":"STA-001","quantity":1,"unitPrice":9,"unitCost":6}],"subtotal":9,"discount":0,"total":9,"paymentMethod":"Mobile Money","amountReceived":9,"change":0,"status":"Completed"}],"movements":[{"id":"mov-prd-1-4","productId":"prd-1","productName":"Bottled Water 500ml","type":"Sale","quantity":-3,"balance":120,"reference":"EE-002602","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-22T08:15:00.000Z"},{"id":"mov-prd-3-1","productId":"prd-3","productName":"Biscuits","type":"Sale","quantity":-2,"balance":8,"reference":"EE-002601","reason":"Sale to Ama Mensah","user":"Kofi Asare","createdAt":"2026-10-22T05:15:00.000Z"},{"id":"mov-prd-5-2","productId":"prd-5","productName":"Bathing Soap","type":"Sale","quantity":-2,"balance":48,"reference":"EE-002604","reason":"Sale to Ama Mensah","user":"Efua Boateng","createdAt":"2026-10-21T07:15:00.000Z"},{"id":"mov-prd-2-2","productId":"prd-2","productName":"Soft Drink 500ml","type":"Sale","quantity":-1,"balance":65,"reference":"EE-002603","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-21T04:15:00.000Z"},{"id":"mov-prd-1-3","productId":"prd-1","productName":"Bottled Water 500ml","type":"Sale","quantity":-4,"balance":123,"reference":"EE-002606","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-20T09:15:00.000Z"},{"id":"mov-prd-7-2","productId":"prd-7","productName":"Long Grain Rice 1kg","type":"Sale","quantity":-1,"balance":42,"reference":"EE-002605","reason":"Sale to Walk-in Customer","user":"Kofi Asare","createdAt":"2026-10-20T03:15:00.000Z"},{"id":"mov-prd-1-2","productId":"prd-1","productName":"Bottled Water 500ml","type":"Stock Received","quantity":60,"balance":127,"reference":"PO-0048","reason":"Received from Accra Wholesale Mart","user":"Akosua (Owner)","createdAt":"2026-10-19T12:15:00.000Z"},{"id":"mov-prd-3-0","productId":"prd-3","productName":"Biscuits","type":"Sale","quantity":-3,"balance":10,"reference":"EE-002607","reason":"Sale to Ama Mensah","user":"Efua Boateng","createdAt":"2026-10-19T06:15:00.000Z"},{"id":"mov-prd-9-0","productId":"prd-9","productName":"Toothpaste 100ml","type":"Sale","quantity":-1,"balance":24,"reference":"EE-002608","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-19T02:15:00.000Z"},{"id":"mov-prd-2-1","productId":"prd-2","productName":"Soft Drink 500ml","type":"Sale","quantity":-3,"balance":66,"reference":"EE-002610","reason":"Sale to Ama Mensah","user":"Efua Boateng","createdAt":"2026-10-18T07:15:00.000Z"},{"id":"mov-prd-6-1","productId":"prd-6","productName":"Exercise Book","type":"Sale","quantity":-2,"balance":32,"reference":"EE-002609","reason":"Sale to Walk-in Customer","user":"Kofi Asare","createdAt":"2026-10-18T04:15:00.000Z"},{"id":"mov-prd-12-0","productId":"prd-12","productName":"Chocolate Wafer","type":"Sale","quantity":-2,"balance":36,"reference":"EE-002612","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-17T05:15:00.000Z"},{"id":"mov-prd-1-1","productId":"prd-1","productName":"Bottled Water 500ml","type":"Sale","quantity":-2,"balance":67,"reference":"EE-002611","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-17T03:15:00.000Z"},{"id":"mov-prd-7-1","productId":"prd-7","productName":"Long Grain Rice 1kg","type":"Sale","quantity":-1,"balance":43,"reference":"EE-002613","reason":"Sale to Ama Mensah","user":"Kofi Asare","createdAt":"2026-10-16T02:15:00.000Z"},{"id":"mov-prd-5-1","productId":"prd-5","productName":"Bathing Soap","type":"Sale","quantity":-3,"balance":50,"reference":"EE-002614","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-15T06:15:00.000Z"},{"id":"mov-prd-7-0","productId":"prd-7","productName":"Long Grain Rice 1kg","type":"Stock Received","quantity":24,"balance":44,"reference":"PO-0047","reason":"Received from Golden Harvest Distributors","user":"Akosua (Owner)","createdAt":"2026-10-14T12:15:00.000Z"},{"id":"mov-prd-8-1","productId":"prd-8","productName":"Palm Oil 1L","type":"Stock Received","quantity":20,"balance":18,"reference":"PO-0047","reason":"Received from Golden Harvest Distributors","user":"Akosua (Owner)","createdAt":"2026-10-14T12:15:00.000Z"},{"id":"mov-prd-8-0","productId":"prd-8","productName":"Palm Oil 1L","type":"Sale","quantity":-1,"balance":-2,"reference":"EE-002615","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-14T03:15:00.000Z"},{"id":"mov-prd-1-0","productId":"prd-1","productName":"Bottled Water 500ml","type":"Sale","quantity":-5,"balance":69,"reference":"EE-002616","reason":"Sale to Ama Mensah","user":"Efua Boateng","createdAt":"2026-10-13T08:15:00.000Z"},{"id":"mov-prd-10-0","productId":"prd-10","productName":"Corn Flakes 500g","type":"Sale","quantity":-1,"balance":15,"reference":"EE-002617","reason":"Sale to Walk-in Customer","user":"Kofi Asare","createdAt":"2026-10-12T02:15:00.000Z"},{"id":"mov-prd-11-0","productId":"prd-11","productName":"Laundry Bar","type":"Sale","quantity":-2,"balance":21,"reference":"EE-002618","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-11T04:15:00.000Z"},{"id":"mov-prd-2-0","productId":"prd-2","productName":"Soft Drink 500ml","type":"Sale","quantity":-3,"balance":69,"reference":"EE-002619","reason":"Sale to Ama Mensah","user":"Efua Boateng","createdAt":"2026-10-10T05:15:00.000Z"},{"id":"mov-prd-6-0","productId":"prd-6","productName":"Exercise Book","type":"Sale","quantity":-1,"balance":34,"reference":"EE-002620","reason":"Sale to Walk-in Customer","user":"Efua Boateng","createdAt":"2026-10-09T03:15:00.000Z"},{"id":"mov-prd-5-0","productId":"prd-5","productName":"Bathing Soap","type":"Stock Received","quantity":50,"balance":53,"reference":"PO-0046","reason":"Received from Coastal Consumer Goods","user":"Akosua (Owner)","createdAt":"2026-10-08T12:15:00.000Z"},{"id":"mov-opening-prd-1","productId":"prd-1","productName":"Bottled Water 500ml","type":"Opening Stock","quantity":74,"balance":74,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-2","productId":"prd-2","productName":"Soft Drink 500ml","type":"Opening Stock","quantity":72,"balance":72,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-3","productId":"prd-3","productName":"Biscuits","type":"Opening Stock","quantity":13,"balance":13,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-4","productId":"prd-4","productName":"Washing Powder","type":"Opening Stock","quantity":0,"balance":0,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-5","productId":"prd-5","productName":"Bathing Soap","type":"Opening Stock","quantity":3,"balance":3,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-6","productId":"prd-6","productName":"Exercise Book","type":"Opening Stock","quantity":35,"balance":35,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-7","productId":"prd-7","productName":"Long Grain Rice 1kg","type":"Opening Stock","quantity":20,"balance":20,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-8","productId":"prd-8","productName":"Palm Oil 1L","type":"Opening Stock","quantity":-1,"balance":-1,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-9","productId":"prd-9","productName":"Toothpaste 100ml","type":"Opening Stock","quantity":25,"balance":25,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-10","productId":"prd-10","productName":"Corn Flakes 500g","type":"Opening Stock","quantity":16,"balance":16,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-11","productId":"prd-11","productName":"Laundry Bar","type":"Opening Stock","quantity":23,"balance":23,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"},{"id":"mov-opening-prd-12","productId":"prd-12","productName":"Chocolate Wafer","type":"Opening Stock","quantity":38,"balance":38,"reference":"OPENING","reason":"Opening count before recorded activity","user":"Akosua (Owner)","createdAt":"2026-09-17T12:15:00.000Z"}],"purchases":[{"id":"pur-1","reference":"PO-0048","supplierId":"sup-1","supplierName":"Accra Wholesale Mart","createdAt":"2026-10-19T12:15:00.000Z","items":[{"productId":"prd-1","name":"Bottled Water 500ml","quantity":60,"received":60,"unitCost":3}],"total":180,"amountPaid":180,"status":"Received"},{"id":"pur-2","reference":"PO-0047","supplierId":"sup-2","supplierName":"Golden Harvest Distributors","createdAt":"2026-10-14T12:15:00.000Z","items":[{"productId":"prd-7","name":"Long Grain Rice 1kg","quantity":40,"received":24,"unitCost":18},{"productId":"prd-8","name":"Palm Oil 1L","quantity":20,"received":20,"unitCost":22}],"total":1160,"amountPaid":800,"status":"Partially received"},{"id":"pur-3","reference":"PO-0046","supplierId":"sup-3","supplierName":"Coastal Consumer Goods","createdAt":"2026-10-08T12:15:00.000Z","items":[{"productId":"prd-5","name":"Bathing Soap","quantity":50,"received":50,"unitCost":4}],"total":200,"amountPaid":150,"status":"Received"}],"expenses":[{"id":"exp-1","title":"Shop rent — October","category":"Rent","amount":1800,"date":"2026-10-17T12:15:00.000Z","paymentMethod":"Bank Transfer","status":"Paid","notes":"","reference":"RENT-OCT"},{"id":"exp-2","title":"Electricity top-up","category":"Electricity","amount":350,"date":"2026-10-20T12:15:00.000Z","paymentMethod":"Mobile Money","status":"Paid","notes":"","reference":"ECG-1022"},{"id":"exp-3","title":"Delivery fuel","category":"Transport","amount":120,"date":"2026-10-21T12:15:00.000Z","paymentMethod":"Cash","status":"Paid","notes":"","reference":""},{"id":"exp-4","title":"Shop internet","category":"Internet and Telephone","amount":180,"date":"2026-10-12T12:15:00.000Z","paymentMethod":"Mobile Money","status":"Unpaid","notes":"","reference":""}],"expenseCategories":["Rent","Electricity","Water","Transport","Salaries","Internet and Telephone","Repairs and Maintenance","Marketing","Bank Charges","Other"],"categories":["Beverages","Snacks","Groceries","Household Products","Personal Care","Stationery"],"users":[{"id":"usr-owner","name":"Akosua Mensah","role":"Owner","active":true},{"id":"usr-cashier-1","name":"Kofi Asare","role":"Cashier","active":true},{"id":"usr-cashier-2","name":"Efua Boateng","role":"Cashier","active":true}],"settings":{"name":"Everyday Essentials Shop","phone":"030 278 4402","email":"hello@everydayessentials.gh","address":"12 Oxford Street, Osu, Accra","receiptFooter":"Thank you for shopping with us!","currency":"GHS","timezone":"Africa/Accra","lowStockThreshold":10},"activeUserId":"usr-owner"}$data$::jsonb);
+-- Run after sql/supabase_master.sql in a fresh project.
+-- Business data only: this seed does not create, update, or delete profiles or access codes.
+-- It loads sample retail records only when all business data tables are empty.
+do $seed$
+begin
+  if not exists (select 1 from business.products)
+      and not exists (select 1 from business.customers)
+      and not exists (select 1 from business.suppliers)
+      and not exists (select 1 from business.sales)
+      and not exists (select 1 from business.sale_items)
+      and not exists (select 1 from business.purchases)
+      and not exists (select 1 from business.purchase_items)
+      and not exists (select 1 from business.inventory_movements)
+      and not exists (select 1 from business.expenses)
+      and not exists (select 1 from business.categories)
+      and not exists (select 1 from business.expense_categories)
+      and not exists (select 1 from business.business_settings) then
+    perform business.replace_retail_data($data$
+{
+  "products": [
+    {
+      "id": "prd-1",
+      "name": "Bottled Water 500ml",
+      "sku": "WAT-001",
+      "category": "Beverages",
+      "description": "",
+      "barcode": "",
+      "costPrice": 3,
+      "sellingPrice": 5,
+      "stock": 120,
+      "reorderLevel": 30,
+      "archived": false
+    },
+    {
+      "id": "prd-2",
+      "name": "Soft Drink 500ml",
+      "sku": "DRK-001",
+      "category": "Beverages",
+      "description": "",
+      "barcode": "",
+      "costPrice": 5,
+      "sellingPrice": 8,
+      "stock": 65,
+      "reorderLevel": 20,
+      "archived": false
+    },
+    {
+      "id": "prd-3",
+      "name": "Biscuits",
+      "sku": "SNK-001",
+      "category": "Snacks",
+      "description": "",
+      "barcode": "",
+      "costPrice": 2.5,
+      "sellingPrice": 4,
+      "stock": 8,
+      "reorderLevel": 25,
+      "archived": false
+    },
+    {
+      "id": "prd-4",
+      "name": "Washing Powder",
+      "sku": "HOU-001",
+      "category": "Household Products",
+      "description": "",
+      "barcode": "",
+      "costPrice": 12,
+      "sellingPrice": 16,
+      "stock": 0,
+      "reorderLevel": 10,
+      "archived": false
+    },
+    {
+      "id": "prd-5",
+      "name": "Bathing Soap",
+      "sku": "PER-001",
+      "category": "Personal Care",
+      "description": "",
+      "barcode": "",
+      "costPrice": 4,
+      "sellingPrice": 6,
+      "stock": 48,
+      "reorderLevel": 15,
+      "archived": false
+    },
+    {
+      "id": "prd-6",
+      "name": "Exercise Book",
+      "sku": "STA-001",
+      "category": "Stationery",
+      "description": "",
+      "barcode": "",
+      "costPrice": 6,
+      "sellingPrice": 9,
+      "stock": 32,
+      "reorderLevel": 10,
+      "archived": false
+    },
+    {
+      "id": "prd-7",
+      "name": "Long Grain Rice 1kg",
+      "sku": "GRO-001",
+      "category": "Groceries",
+      "description": "",
+      "barcode": "",
+      "costPrice": 18,
+      "sellingPrice": 24,
+      "stock": 42,
+      "reorderLevel": 12,
+      "archived": false
+    },
+    {
+      "id": "prd-8",
+      "name": "Palm Oil 1L",
+      "sku": "GRO-002",
+      "category": "Groceries",
+      "description": "",
+      "barcode": "",
+      "costPrice": 22,
+      "sellingPrice": 29,
+      "stock": 18,
+      "reorderLevel": 8,
+      "archived": false
+    },
+    {
+      "id": "prd-9",
+      "name": "Toothpaste 100ml",
+      "sku": "PER-002",
+      "category": "Personal Care",
+      "description": "",
+      "barcode": "",
+      "costPrice": 8,
+      "sellingPrice": 12,
+      "stock": 24,
+      "reorderLevel": 10,
+      "archived": false
+    },
+    {
+      "id": "prd-10",
+      "name": "Corn Flakes 500g",
+      "sku": "GRO-003",
+      "category": "Groceries",
+      "description": "",
+      "barcode": "",
+      "costPrice": 25,
+      "sellingPrice": 34,
+      "stock": 15,
+      "reorderLevel": 8,
+      "archived": false
+    },
+    {
+      "id": "prd-11",
+      "name": "Laundry Bar",
+      "sku": "HOU-002",
+      "category": "Household Products",
+      "description": "",
+      "barcode": "",
+      "costPrice": 7,
+      "sellingPrice": 10,
+      "stock": 21,
+      "reorderLevel": 10,
+      "archived": false
+    },
+    {
+      "id": "prd-12",
+      "name": "Chocolate Wafer",
+      "sku": "SNK-002",
+      "category": "Snacks",
+      "description": "",
+      "barcode": "",
+      "costPrice": 3,
+      "sellingPrice": 5,
+      "stock": 36,
+      "reorderLevel": 12,
+      "archived": false
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus-1",
+      "name": "Ama Mensah",
+      "phone": "024 555 0192",
+      "email": "ama.m@example.com",
+      "notes": ""
+    },
+    {
+      "id": "cus-2",
+      "name": "Kojo Asante",
+      "phone": "020 441 7730",
+      "email": "",
+      "notes": ""
+    },
+    {
+      "id": "cus-3",
+      "name": "Abena Owusu",
+      "phone": "055 218 9031",
+      "email": "",
+      "notes": ""
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "sup-1",
+      "name": "Accra Wholesale Mart",
+      "phone": "030 222 4581",
+      "email": "orders@accrawholesale.gh",
+      "address": "Makola Market, Accra",
+      "notes": "",
+      "archived": false
+    },
+    {
+      "id": "sup-2",
+      "name": "Golden Harvest Distributors",
+      "phone": "024 817 6004",
+      "email": "",
+      "address": "Tema Industrial Area",
+      "notes": "",
+      "archived": false
+    },
+    {
+      "id": "sup-3",
+      "name": "Coastal Consumer Goods",
+      "phone": "050 300 1762",
+      "email": "",
+      "address": "Kaneshie, Accra",
+      "notes": "",
+      "archived": false
+    }
+  ],
+  "sales": [
+    {
+      "id": "sale-1",
+      "reference": "EE-002601",
+      "createdAt": "2026-10-22T05:15:00.000Z",
+      "customerId": "cus-1",
+      "customerName": "Ama Mensah",
+      "cashier": "Kofi Asare",
+      "items": [
+        {
+          "productId": "prd-3",
+          "name": "Biscuits",
+          "sku": "SNK-001",
+          "quantity": 2,
+          "unitPrice": 4,
+          "unitCost": 2.5
+        }
+      ],
+      "subtotal": 8,
+      "discount": 0,
+      "total": 8,
+      "paymentMethod": "Cash",
+      "amountReceived": 8,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-2",
+      "reference": "EE-002602",
+      "createdAt": "2026-10-22T08:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-1",
+          "name": "Bottled Water 500ml",
+          "sku": "WAT-001",
+          "quantity": 3,
+          "unitPrice": 5,
+          "unitCost": 3
+        }
+      ],
+      "subtotal": 15,
+      "discount": 0,
+      "total": 15,
+      "paymentMethod": "Mobile Money",
+      "amountReceived": 15,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-3",
+      "reference": "EE-002603",
+      "createdAt": "2026-10-21T04:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-2",
+          "name": "Soft Drink 500ml",
+          "sku": "DRK-001",
+          "quantity": 1,
+          "unitPrice": 8,
+          "unitCost": 5
+        }
+      ],
+      "subtotal": 8,
+      "discount": 0,
+      "total": 8,
+      "paymentMethod": "Card",
+      "amountReceived": 8,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-4",
+      "reference": "EE-002604",
+      "createdAt": "2026-10-21T07:15:00.000Z",
+      "customerId": "cus-1",
+      "customerName": "Ama Mensah",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-5",
+          "name": "Bathing Soap",
+          "sku": "PER-001",
+          "quantity": 2,
+          "unitPrice": 6,
+          "unitCost": 4
+        }
+      ],
+      "subtotal": 12,
+      "discount": 0,
+      "total": 12,
+      "paymentMethod": "Cash",
+      "amountReceived": 12,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-5",
+      "reference": "EE-002605",
+      "createdAt": "2026-10-20T03:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Kofi Asare",
+      "items": [
+        {
+          "productId": "prd-7",
+          "name": "Long Grain Rice 1kg",
+          "sku": "GRO-001",
+          "quantity": 1,
+          "unitPrice": 24,
+          "unitCost": 18
+        }
+      ],
+      "subtotal": 24,
+      "discount": 0,
+      "total": 24,
+      "paymentMethod": "Mobile Money",
+      "amountReceived": 24,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-6",
+      "reference": "EE-002606",
+      "createdAt": "2026-10-20T09:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-1",
+          "name": "Bottled Water 500ml",
+          "sku": "WAT-001",
+          "quantity": 4,
+          "unitPrice": 5,
+          "unitCost": 3
+        }
+      ],
+      "subtotal": 20,
+      "discount": 0,
+      "total": 20,
+      "paymentMethod": "Card",
+      "amountReceived": 20,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-7",
+      "reference": "EE-002607",
+      "createdAt": "2026-10-19T06:15:00.000Z",
+      "customerId": "cus-1",
+      "customerName": "Ama Mensah",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-3",
+          "name": "Biscuits",
+          "sku": "SNK-001",
+          "quantity": 3,
+          "unitPrice": 4,
+          "unitCost": 2.5
+        }
+      ],
+      "subtotal": 12,
+      "discount": 0,
+      "total": 12,
+      "paymentMethod": "Cash",
+      "amountReceived": 12,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-8",
+      "reference": "EE-002608",
+      "createdAt": "2026-10-19T02:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-9",
+          "name": "Toothpaste 100ml",
+          "sku": "PER-002",
+          "quantity": 1,
+          "unitPrice": 12,
+          "unitCost": 8
+        }
+      ],
+      "subtotal": 12,
+      "discount": 0,
+      "total": 12,
+      "paymentMethod": "Mobile Money",
+      "amountReceived": 12,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-9",
+      "reference": "EE-002609",
+      "createdAt": "2026-10-18T04:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Kofi Asare",
+      "items": [
+        {
+          "productId": "prd-6",
+          "name": "Exercise Book",
+          "sku": "STA-001",
+          "quantity": 2,
+          "unitPrice": 9,
+          "unitCost": 6
+        }
+      ],
+      "subtotal": 18,
+      "discount": 0,
+      "total": 18,
+      "paymentMethod": "Card",
+      "amountReceived": 18,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-10",
+      "reference": "EE-002610",
+      "createdAt": "2026-10-18T07:15:00.000Z",
+      "customerId": "cus-1",
+      "customerName": "Ama Mensah",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-2",
+          "name": "Soft Drink 500ml",
+          "sku": "DRK-001",
+          "quantity": 3,
+          "unitPrice": 8,
+          "unitCost": 5
+        }
+      ],
+      "subtotal": 24,
+      "discount": 0,
+      "total": 24,
+      "paymentMethod": "Cash",
+      "amountReceived": 24,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-11",
+      "reference": "EE-002611",
+      "createdAt": "2026-10-17T03:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-1",
+          "name": "Bottled Water 500ml",
+          "sku": "WAT-001",
+          "quantity": 2,
+          "unitPrice": 5,
+          "unitCost": 3
+        }
+      ],
+      "subtotal": 10,
+      "discount": 0,
+      "total": 10,
+      "paymentMethod": "Mobile Money",
+      "amountReceived": 10,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-12",
+      "reference": "EE-002612",
+      "createdAt": "2026-10-17T05:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-12",
+          "name": "Chocolate Wafer",
+          "sku": "SNK-002",
+          "quantity": 2,
+          "unitPrice": 5,
+          "unitCost": 3
+        }
+      ],
+      "subtotal": 10,
+      "discount": 0,
+      "total": 10,
+      "paymentMethod": "Card",
+      "amountReceived": 10,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-13",
+      "reference": "EE-002613",
+      "createdAt": "2026-10-16T02:15:00.000Z",
+      "customerId": "cus-1",
+      "customerName": "Ama Mensah",
+      "cashier": "Kofi Asare",
+      "items": [
+        {
+          "productId": "prd-7",
+          "name": "Long Grain Rice 1kg",
+          "sku": "GRO-001",
+          "quantity": 1,
+          "unitPrice": 24,
+          "unitCost": 18
+        }
+      ],
+      "subtotal": 24,
+      "discount": 0,
+      "total": 24,
+      "paymentMethod": "Cash",
+      "amountReceived": 24,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-14",
+      "reference": "EE-002614",
+      "createdAt": "2026-10-15T06:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-5",
+          "name": "Bathing Soap",
+          "sku": "PER-001",
+          "quantity": 3,
+          "unitPrice": 6,
+          "unitCost": 4
+        }
+      ],
+      "subtotal": 18,
+      "discount": 0,
+      "total": 18,
+      "paymentMethod": "Mobile Money",
+      "amountReceived": 18,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-15",
+      "reference": "EE-002615",
+      "createdAt": "2026-10-14T03:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-8",
+          "name": "Palm Oil 1L",
+          "sku": "GRO-002",
+          "quantity": 1,
+          "unitPrice": 29,
+          "unitCost": 22
+        }
+      ],
+      "subtotal": 29,
+      "discount": 0,
+      "total": 29,
+      "paymentMethod": "Card",
+      "amountReceived": 29,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-16",
+      "reference": "EE-002616",
+      "createdAt": "2026-10-13T08:15:00.000Z",
+      "customerId": "cus-1",
+      "customerName": "Ama Mensah",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-1",
+          "name": "Bottled Water 500ml",
+          "sku": "WAT-001",
+          "quantity": 5,
+          "unitPrice": 5,
+          "unitCost": 3
+        }
+      ],
+      "subtotal": 25,
+      "discount": 0,
+      "total": 25,
+      "paymentMethod": "Cash",
+      "amountReceived": 25,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-17",
+      "reference": "EE-002617",
+      "createdAt": "2026-10-12T02:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Kofi Asare",
+      "items": [
+        {
+          "productId": "prd-10",
+          "name": "Corn Flakes 500g",
+          "sku": "GRO-003",
+          "quantity": 1,
+          "unitPrice": 34,
+          "unitCost": 25
+        }
+      ],
+      "subtotal": 34,
+      "discount": 0,
+      "total": 34,
+      "paymentMethod": "Mobile Money",
+      "amountReceived": 34,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-18",
+      "reference": "EE-002618",
+      "createdAt": "2026-10-11T04:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-11",
+          "name": "Laundry Bar",
+          "sku": "HOU-002",
+          "quantity": 2,
+          "unitPrice": 10,
+          "unitCost": 7
+        }
+      ],
+      "subtotal": 20,
+      "discount": 0,
+      "total": 20,
+      "paymentMethod": "Card",
+      "amountReceived": 20,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-19",
+      "reference": "EE-002619",
+      "createdAt": "2026-10-10T05:15:00.000Z",
+      "customerId": "cus-1",
+      "customerName": "Ama Mensah",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-2",
+          "name": "Soft Drink 500ml",
+          "sku": "DRK-001",
+          "quantity": 3,
+          "unitPrice": 8,
+          "unitCost": 5
+        }
+      ],
+      "subtotal": 24,
+      "discount": 0,
+      "total": 24,
+      "paymentMethod": "Cash",
+      "amountReceived": 24,
+      "change": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "sale-20",
+      "reference": "EE-002620",
+      "createdAt": "2026-10-09T03:15:00.000Z",
+      "customerId": null,
+      "customerName": "Walk-in Customer",
+      "cashier": "Efua Boateng",
+      "items": [
+        {
+          "productId": "prd-6",
+          "name": "Exercise Book",
+          "sku": "STA-001",
+          "quantity": 1,
+          "unitPrice": 9,
+          "unitCost": 6
+        }
+      ],
+      "subtotal": 9,
+      "discount": 0,
+      "total": 9,
+      "paymentMethod": "Mobile Money",
+      "amountReceived": 9,
+      "change": 0,
+      "status": "Completed"
+    }
+  ],
+  "movements": [
+    {
+      "id": "mov-prd-1-4",
+      "productId": "prd-1",
+      "productName": "Bottled Water 500ml",
+      "type": "Sale",
+      "quantity": -3,
+      "balance": 120,
+      "reference": "EE-002602",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-22T08:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-3-1",
+      "productId": "prd-3",
+      "productName": "Biscuits",
+      "type": "Sale",
+      "quantity": -2,
+      "balance": 8,
+      "reference": "EE-002601",
+      "reason": "Sale to Ama Mensah",
+      "user": "Kofi Asare",
+      "createdAt": "2026-10-22T05:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-5-2",
+      "productId": "prd-5",
+      "productName": "Bathing Soap",
+      "type": "Sale",
+      "quantity": -2,
+      "balance": 48,
+      "reference": "EE-002604",
+      "reason": "Sale to Ama Mensah",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-21T07:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-2-2",
+      "productId": "prd-2",
+      "productName": "Soft Drink 500ml",
+      "type": "Sale",
+      "quantity": -1,
+      "balance": 65,
+      "reference": "EE-002603",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-21T04:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-1-3",
+      "productId": "prd-1",
+      "productName": "Bottled Water 500ml",
+      "type": "Sale",
+      "quantity": -4,
+      "balance": 123,
+      "reference": "EE-002606",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-20T09:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-7-2",
+      "productId": "prd-7",
+      "productName": "Long Grain Rice 1kg",
+      "type": "Sale",
+      "quantity": -1,
+      "balance": 42,
+      "reference": "EE-002605",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Kofi Asare",
+      "createdAt": "2026-10-20T03:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-1-2",
+      "productId": "prd-1",
+      "productName": "Bottled Water 500ml",
+      "type": "Stock Received",
+      "quantity": 60,
+      "balance": 127,
+      "reference": "PO-0048",
+      "reason": "Received from Accra Wholesale Mart",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-10-19T12:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-3-0",
+      "productId": "prd-3",
+      "productName": "Biscuits",
+      "type": "Sale",
+      "quantity": -3,
+      "balance": 10,
+      "reference": "EE-002607",
+      "reason": "Sale to Ama Mensah",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-19T06:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-9-0",
+      "productId": "prd-9",
+      "productName": "Toothpaste 100ml",
+      "type": "Sale",
+      "quantity": -1,
+      "balance": 24,
+      "reference": "EE-002608",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-19T02:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-2-1",
+      "productId": "prd-2",
+      "productName": "Soft Drink 500ml",
+      "type": "Sale",
+      "quantity": -3,
+      "balance": 66,
+      "reference": "EE-002610",
+      "reason": "Sale to Ama Mensah",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-18T07:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-6-1",
+      "productId": "prd-6",
+      "productName": "Exercise Book",
+      "type": "Sale",
+      "quantity": -2,
+      "balance": 32,
+      "reference": "EE-002609",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Kofi Asare",
+      "createdAt": "2026-10-18T04:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-12-0",
+      "productId": "prd-12",
+      "productName": "Chocolate Wafer",
+      "type": "Sale",
+      "quantity": -2,
+      "balance": 36,
+      "reference": "EE-002612",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-17T05:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-1-1",
+      "productId": "prd-1",
+      "productName": "Bottled Water 500ml",
+      "type": "Sale",
+      "quantity": -2,
+      "balance": 67,
+      "reference": "EE-002611",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-17T03:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-7-1",
+      "productId": "prd-7",
+      "productName": "Long Grain Rice 1kg",
+      "type": "Sale",
+      "quantity": -1,
+      "balance": 43,
+      "reference": "EE-002613",
+      "reason": "Sale to Ama Mensah",
+      "user": "Kofi Asare",
+      "createdAt": "2026-10-16T02:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-5-1",
+      "productId": "prd-5",
+      "productName": "Bathing Soap",
+      "type": "Sale",
+      "quantity": -3,
+      "balance": 50,
+      "reference": "EE-002614",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-15T06:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-7-0",
+      "productId": "prd-7",
+      "productName": "Long Grain Rice 1kg",
+      "type": "Stock Received",
+      "quantity": 24,
+      "balance": 44,
+      "reference": "PO-0047",
+      "reason": "Received from Golden Harvest Distributors",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-10-14T12:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-8-1",
+      "productId": "prd-8",
+      "productName": "Palm Oil 1L",
+      "type": "Stock Received",
+      "quantity": 20,
+      "balance": 18,
+      "reference": "PO-0047",
+      "reason": "Received from Golden Harvest Distributors",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-10-14T12:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-8-0",
+      "productId": "prd-8",
+      "productName": "Palm Oil 1L",
+      "type": "Sale",
+      "quantity": -1,
+      "balance": -2,
+      "reference": "EE-002615",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-14T03:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-1-0",
+      "productId": "prd-1",
+      "productName": "Bottled Water 500ml",
+      "type": "Sale",
+      "quantity": -5,
+      "balance": 69,
+      "reference": "EE-002616",
+      "reason": "Sale to Ama Mensah",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-13T08:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-10-0",
+      "productId": "prd-10",
+      "productName": "Corn Flakes 500g",
+      "type": "Sale",
+      "quantity": -1,
+      "balance": 15,
+      "reference": "EE-002617",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Kofi Asare",
+      "createdAt": "2026-10-12T02:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-11-0",
+      "productId": "prd-11",
+      "productName": "Laundry Bar",
+      "type": "Sale",
+      "quantity": -2,
+      "balance": 21,
+      "reference": "EE-002618",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-11T04:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-2-0",
+      "productId": "prd-2",
+      "productName": "Soft Drink 500ml",
+      "type": "Sale",
+      "quantity": -3,
+      "balance": 69,
+      "reference": "EE-002619",
+      "reason": "Sale to Ama Mensah",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-10T05:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-6-0",
+      "productId": "prd-6",
+      "productName": "Exercise Book",
+      "type": "Sale",
+      "quantity": -1,
+      "balance": 34,
+      "reference": "EE-002620",
+      "reason": "Sale to Walk-in Customer",
+      "user": "Efua Boateng",
+      "createdAt": "2026-10-09T03:15:00.000Z"
+    },
+    {
+      "id": "mov-prd-5-0",
+      "productId": "prd-5",
+      "productName": "Bathing Soap",
+      "type": "Stock Received",
+      "quantity": 50,
+      "balance": 53,
+      "reference": "PO-0046",
+      "reason": "Received from Coastal Consumer Goods",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-10-08T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-1",
+      "productId": "prd-1",
+      "productName": "Bottled Water 500ml",
+      "type": "Opening Stock",
+      "quantity": 74,
+      "balance": 74,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-2",
+      "productId": "prd-2",
+      "productName": "Soft Drink 500ml",
+      "type": "Opening Stock",
+      "quantity": 72,
+      "balance": 72,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-3",
+      "productId": "prd-3",
+      "productName": "Biscuits",
+      "type": "Opening Stock",
+      "quantity": 13,
+      "balance": 13,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-4",
+      "productId": "prd-4",
+      "productName": "Washing Powder",
+      "type": "Opening Stock",
+      "quantity": 0,
+      "balance": 0,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-5",
+      "productId": "prd-5",
+      "productName": "Bathing Soap",
+      "type": "Opening Stock",
+      "quantity": 3,
+      "balance": 3,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-6",
+      "productId": "prd-6",
+      "productName": "Exercise Book",
+      "type": "Opening Stock",
+      "quantity": 35,
+      "balance": 35,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-7",
+      "productId": "prd-7",
+      "productName": "Long Grain Rice 1kg",
+      "type": "Opening Stock",
+      "quantity": 20,
+      "balance": 20,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-8",
+      "productId": "prd-8",
+      "productName": "Palm Oil 1L",
+      "type": "Opening Stock",
+      "quantity": -1,
+      "balance": -1,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-9",
+      "productId": "prd-9",
+      "productName": "Toothpaste 100ml",
+      "type": "Opening Stock",
+      "quantity": 25,
+      "balance": 25,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-10",
+      "productId": "prd-10",
+      "productName": "Corn Flakes 500g",
+      "type": "Opening Stock",
+      "quantity": 16,
+      "balance": 16,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-11",
+      "productId": "prd-11",
+      "productName": "Laundry Bar",
+      "type": "Opening Stock",
+      "quantity": 23,
+      "balance": 23,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    },
+    {
+      "id": "mov-opening-prd-12",
+      "productId": "prd-12",
+      "productName": "Chocolate Wafer",
+      "type": "Opening Stock",
+      "quantity": 38,
+      "balance": 38,
+      "reference": "OPENING",
+      "reason": "Opening count before recorded activity",
+      "user": "Akosua (Owner)",
+      "createdAt": "2026-09-17T12:15:00.000Z"
+    }
+  ],
+  "purchases": [
+    {
+      "id": "pur-1",
+      "reference": "PO-0048",
+      "supplierId": "sup-1",
+      "supplierName": "Accra Wholesale Mart",
+      "createdAt": "2026-10-19T12:15:00.000Z",
+      "items": [
+        {
+          "productId": "prd-1",
+          "name": "Bottled Water 500ml",
+          "quantity": 60,
+          "received": 60,
+          "unitCost": 3
+        }
+      ],
+      "total": 180,
+      "amountPaid": 180,
+      "status": "Received"
+    },
+    {
+      "id": "pur-2",
+      "reference": "PO-0047",
+      "supplierId": "sup-2",
+      "supplierName": "Golden Harvest Distributors",
+      "createdAt": "2026-10-14T12:15:00.000Z",
+      "items": [
+        {
+          "productId": "prd-7",
+          "name": "Long Grain Rice 1kg",
+          "quantity": 40,
+          "received": 24,
+          "unitCost": 18
+        },
+        {
+          "productId": "prd-8",
+          "name": "Palm Oil 1L",
+          "quantity": 20,
+          "received": 20,
+          "unitCost": 22
+        }
+      ],
+      "total": 1160,
+      "amountPaid": 800,
+      "status": "Partially received"
+    },
+    {
+      "id": "pur-3",
+      "reference": "PO-0046",
+      "supplierId": "sup-3",
+      "supplierName": "Coastal Consumer Goods",
+      "createdAt": "2026-10-08T12:15:00.000Z",
+      "items": [
+        {
+          "productId": "prd-5",
+          "name": "Bathing Soap",
+          "quantity": 50,
+          "received": 50,
+          "unitCost": 4
+        }
+      ],
+      "total": 200,
+      "amountPaid": 150,
+      "status": "Received"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "exp-1",
+      "title": "Shop rent — October",
+      "category": "Rent",
+      "amount": 1800,
+      "date": "2026-10-17T12:15:00.000Z",
+      "paymentMethod": "Bank Transfer",
+      "status": "Paid",
+      "notes": "",
+      "reference": "RENT-OCT"
+    },
+    {
+      "id": "exp-2",
+      "title": "Electricity top-up",
+      "category": "Electricity",
+      "amount": 350,
+      "date": "2026-10-20T12:15:00.000Z",
+      "paymentMethod": "Mobile Money",
+      "status": "Paid",
+      "notes": "",
+      "reference": "ECG-1022"
+    },
+    {
+      "id": "exp-3",
+      "title": "Delivery fuel",
+      "category": "Transport",
+      "amount": 120,
+      "date": "2026-10-21T12:15:00.000Z",
+      "paymentMethod": "Cash",
+      "status": "Paid",
+      "notes": "",
+      "reference": ""
+    },
+    {
+      "id": "exp-4",
+      "title": "Shop internet",
+      "category": "Internet and Telephone",
+      "amount": 180,
+      "date": "2026-10-12T12:15:00.000Z",
+      "paymentMethod": "Mobile Money",
+      "status": "Unpaid",
+      "notes": "",
+      "reference": ""
+    }
+  ],
+  "expenseCategories": [
+    "Rent",
+    "Electricity",
+    "Water",
+    "Transport",
+    "Salaries",
+    "Internet and Telephone",
+    "Repairs and Maintenance",
+    "Marketing",
+    "Bank Charges",
+    "Other"
+  ],
+  "categories": [
+    "Beverages",
+    "Snacks",
+    "Groceries",
+    "Household Products",
+    "Personal Care",
+    "Stationery"
+  ],
+  "settings": {
+    "name": "Everyday Essentials Shop",
+    "phone": "030 278 4402",
+    "email": "hello@everydayessentials.gh",
+    "address": "12 Oxford Street, Osu, Accra",
+    "receiptFooter": "Thank you for shopping with us!",
+    "currency": "GHS",
+    "timezone": "Africa/Accra",
+    "lowStockThreshold": 10
+  }
+}
+$data$::jsonb);
+  else
+    raise notice 'Seed skipped: business data already exists.';
   end if;
-end; $seed$;
+end;
+$seed$;
