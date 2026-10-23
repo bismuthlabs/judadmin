@@ -19,6 +19,7 @@ import {
   Loader2,
   LayoutDashboard,
   Menu,
+  MessageCircle,
   LogOut,
   Moon,
   Package,
@@ -45,7 +46,9 @@ import {
 } from "@/components/pages/operations";
 import { SalesPage } from "@/components/pages/sales";
 import { ReportsPage, SettingsPage } from "@/components/pages/reports-settings";
-import { IconButton } from "@/components/retail-ui";
+import { IconButton, Modal } from "@/components/retail-ui";
+
+const SUPPORT_WHATSAPP_NUMBER = "233592771234";
 
 const navigation = [
   {
@@ -139,6 +142,7 @@ export function RetailApp() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const installPrompt = useRef<DeferredInstallPrompt | null>(null);
   const currentUser = data.users.find((item) => item.id === data.activeUserId);
   const lowStock = data.products.filter(
@@ -392,7 +396,17 @@ export function RetailApp() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-help">
+          <button
+            type="button"
+            className="sidebar-help"
+            title={collapsed ? "Help & support" : undefined}
+            aria-haspopup="dialog"
+            aria-expanded={helpOpen}
+            onClick={() => {
+              setMobileOpen(false);
+              setHelpOpen(true);
+            }}
+          >
             <span className="help-mark">
               <CircleHelp size={16} />
             </span>
@@ -401,7 +415,7 @@ export function RetailApp() {
               <small>Retail workspace</small>
             </span>
             <ChevronRight size={15} />
-          </div>
+          </button>
           <div className="sidebar-user">
             <span className="user-avatar">
               {currentUser?.name.slice(0, 1) ?? "A"}
@@ -600,6 +614,62 @@ export function RetailApp() {
           </div>
         </div>
       )}
+      <Modal
+        title="Help & support"
+        description="Find a workspace task or get in touch with our team."
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+      >
+        <div className="help-panel-content">
+          <div className="help-panel-section">
+            <h3>Quick links</h3>
+            <div className="help-panel-links">
+              <Link href="/pos" onClick={() => setHelpOpen(false)}>
+                <ShoppingBag size={17} />
+                <span>Start a sale</span>
+                <ChevronRight size={15} />
+              </Link>
+              <Link href="/sales" onClick={() => setHelpOpen(false)}>
+                <Receipt size={17} />
+                <span>Find a receipt</span>
+                <ChevronRight size={15} />
+              </Link>
+              {canManage && (
+                <>
+                  <Link href="/products" onClick={() => setHelpOpen(false)}>
+                    <Package size={17} />
+                    <span>Manage products</span>
+                    <ChevronRight size={15} />
+                  </Link>
+                  <Link href="/inventory" onClick={() => setHelpOpen(false)}>
+                    <PackageSearch size={17} />
+                    <span>Check inventory</span>
+                    <ChevronRight size={15} />
+                  </Link>
+                  <Link href="/purchases" onClick={() => setHelpOpen(false)}>
+                    <Truck size={17} />
+                    <span>Track purchases</span>
+                    <ChevronRight size={15} />
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+          <a
+            className="help-panel-contact"
+            href={`https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi.")}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MessageCircle size={18} />
+            <span>
+              <strong>Contact support on WhatsApp</strong>
+              <small>+233 59 277 1234</small>
+            </span>
+            <ArrowRight size={16} />
+          </a>
+        </div>
+      </Modal>
       <Toaster position="bottom-right" richColors closeButton />
     </div>
   );

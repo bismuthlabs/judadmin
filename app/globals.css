@@ -375,10 +375,25 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 9px;
+  width: 100%;
   padding: 10px;
   margin-bottom: 9px;
   border: 1px solid var(--line);
   border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.sidebar-help:hover {
+  border-color: #cad8ce;
+  background: #f8faf8;
+}
+.sidebar-help:focus-visible {
+  outline: 3px solid #85b19a;
+  outline-offset: 2px;
 }
 .sidebar-help > span:nth-child(2) {
   display: flex;
@@ -392,6 +407,74 @@ textarea:focus-visible {
 .sidebar-help small {
   color: var(--muted);
   font-size: 10px;
+}
+.help-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 18px 18px;
+}
+.help-panel-section h3 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+.help-panel-links {
+  display: flex;
+  flex-direction: column;
+}
+.help-panel-links a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 8px;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  font-size: 11px;
+}
+.help-panel-links a > span {
+  flex: 1;
+}
+.help-panel-links a > svg:first-child {
+  color: var(--green);
+}
+.help-panel-links a > svg:last-child {
+  color: var(--muted);
+}
+.help-panel-links a:hover {
+  background: var(--green-wash);
+}
+.help-panel-contact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 9px 11px;
+  border: 1px solid #cfe2d4;
+  border-radius: 8px;
+  background: #f1f7f2;
+  color: var(--green-dark);
+}
+.help-panel-contact > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.help-panel-contact strong {
+  font-size: 11px;
+}
+.help-panel-contact small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.help-panel-contact:hover {
+  border-color: var(--green);
+  background: var(--green-wash);
 }
 .help-mark {
   color: #86958a;
@@ -3522,6 +3605,19 @@ td strong {
   border-color: var(--line);
   background: #172334;
   color: #cbd6e5;
+}
+:root[data-theme="dark"] .sidebar-help:hover {
+  border-color: #365442;
+  background: #172b22;
+}
+:root[data-theme="dark"] .help-panel-contact {
+  border-color: #28513c;
+  background: #153326;
+  color: #91dfb1;
+}
+:root[data-theme="dark"] .help-panel-contact:hover,
+:root[data-theme="dark"] .help-panel-links a:hover {
+  background: #1b4431;
 }
 :root[data-theme="dark"] .sidebar-install {
   border-color: #28513c;
