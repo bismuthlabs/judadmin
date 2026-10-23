@@ -343,7 +343,7 @@ export function RetailApp() {
             <strong>{data.settings.name}</strong>
             <small>Retail store</small>
           </span>
-          <ChevronDown size={15} />
+          {/* <ChevronDown size={15} /> */}
         </div>
         <nav className="sidebar-nav" aria-label="Main navigation">
           {navigation.filter((group) => canManage || group.items.some((item) => item.href === "/pos" || item.href === "/sales")).map((group, groupIndex) => (
