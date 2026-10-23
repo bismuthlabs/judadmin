@@ -466,9 +466,9 @@ export function RetailApp() {
             <span className="topbar-current">{routeLabel(pathname)}</span>
           </div>
           <div className="topbar-actions">
-            <IconButton label="Install app" onClick={() => void installApp()}>
+            {/* <IconButton label="Install app" onClick={() => void installApp()}>
               <Download size={17} />
-            </IconButton>
+            </IconButton> */}
             <IconButton label="Toggle dark mode" onClick={toggleTheme}>
               <Sun className="theme-icon-light" size={17} />
               <Moon className="theme-icon-dark" size={17} />
