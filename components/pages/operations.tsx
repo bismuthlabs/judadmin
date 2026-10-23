@@ -699,9 +699,9 @@ export function PurchasesPage() {
   const [lines, setLines] = useState<
     Array<{
       productId: string;
-      quantity: number;
-      received: number;
-      unitCost: number;
+      quantity: number | "";
+      received: number | "";
+      unitCost: number | "";
     }>
   >([{ productId: "", quantity: 1, received: 1, unitCost: 0 }]);
   const [amountPaid, setAmountPaid] = useState(0);
@@ -711,10 +711,13 @@ export function PurchasesPage() {
   const [search, setSearch] = useState("");
   const newPurchase = pathname === "/purchases/new";
   const total = lines.reduce(
-    (sum, item) => sum + item.quantity * item.unitCost,
+    (sum, item) =>
+      sum +
+      (typeof item.quantity === "number" ? item.quantity : 0) *
+        (typeof item.unitCost === "number" ? item.unitCost : 0),
     0,
   );
-  const [date] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [currentMonth] = useState(() => new Date().getMonth());
 
   if (newPurchase)
@@ -742,22 +745,26 @@ export function PurchasesPage() {
               lines.some(
                 (line) =>
                   !line.productId ||
+                  line.quantity === "" ||
                   line.quantity <= 0 ||
                   !Number.isInteger(line.quantity) ||
+                  line.received === "" ||
                   line.received < 0 ||
                   line.received > line.quantity ||
                   !Number.isInteger(line.received) ||
+                  line.unitCost === "" ||
                   line.unitCost < 0,
               )
             )
               return toast.error("Review product, quantities and unit costs.");
             const items: PurchaseItem[] = lines.map((line) => ({
-              ...line,
+              productId: line.productId,
               name:
                 data.products.find((product) => product.id === line.productId)
                   ?.name ?? "",
-              quantity: line.quantity,
-              received: line.received,
+              quantity: Number(line.quantity),
+              received: Number(line.received),
+              unitCost: Number(line.unitCost),
             }));
             purchaseLock.current = true;
             try {
@@ -813,7 +820,13 @@ export function PurchasesPage() {
                     </option>
                   ))}
               </SelectField>
-              <Field label="Purchase date" type="date" value={date} readOnly />
+              <Field
+                label="Purchase date"
+                type="date"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                required
+              />
             </div>
           </Panel>
           <Panel>
@@ -867,10 +880,17 @@ export function PurchasesPage() {
                           rowIndex === index
                             ? {
                                 ...row,
-                                quantity: Number(event.target.value),
+                                quantity:
+                                  event.target.value === ""
+                                    ? ""
+                                    : Number(event.target.value),
                                 received: Math.min(
-                                  row.received,
-                                  Number(event.target.value),
+                                  typeof row.received === "number"
+                                    ? row.received
+                                    : 0,
+                                  event.target.value === ""
+                                    ? 0
+                                    : Number(event.target.value),
                                 ),
                               }
                             : row,
@@ -888,7 +908,13 @@ export function PurchasesPage() {
                       setLines((previous) =>
                         previous.map((row, rowIndex) =>
                           rowIndex === index
-                            ? { ...row, received: Number(event.target.value) }
+                            ? {
+                                ...row,
+                                received:
+                                  event.target.value === ""
+                                    ? ""
+                                    : Number(event.target.value),
+                              }
                             : row,
                         ),
                       )
@@ -904,7 +930,13 @@ export function PurchasesPage() {
                       setLines((previous) =>
                         previous.map((row, rowIndex) =>
                           rowIndex === index
-                            ? { ...row, unitCost: Number(event.target.value) }
+                            ? {
+                                ...row,
+                                unitCost:
+                                  event.target.value === ""
+                                    ? ""
+                                    : Number(event.target.value),
+                              }
                             : row,
                         ),
                       )
@@ -954,9 +986,7 @@ export function PurchasesPage() {
                   max={total}
                   step="0.01"
                   value={amountPaid}
-                  onChange={(event) =>
-                    setAmountPaid(Number(event.target.value))
-                  }
+                  onChange={(event) => setAmountPaid(Number(event.target.value))}
                 />
               </div>
               <div className="purchase-outstanding">
