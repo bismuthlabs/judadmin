@@ -4,7 +4,7 @@ const OFFLINE_URL = "/offline.html";
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll([OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"]))
+      .then((cache) => cache.addAll([OFFLINE_URL, "/icons/crud-logo-no-wordmark-192.jpg", "/icons/crud-logo-no-wordmark-512.jpg"]))
       .then(() => self.skipWaiting()),
   );
 });
