@@ -244,7 +244,7 @@ export function RetailApp() {
     const installed = window.matchMedia("(display-mode: standalone)").matches
       || (navigator as Navigator & { standalone?: boolean }).standalone === true;
     if (installed) {
-      toast.message("Everyday Retail is already installed on this device.");
+      toast.message("Crud is already installed on this device.");
       return;
     }
     if (installPrompt.current) {
@@ -257,12 +257,12 @@ export function RetailApp() {
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     if (isIOS) {
-      toast.message("Add Everyday Retail to your Home Screen", {
+      toast.message("Add Crud to your Home Screen", {
         description: "In Safari, tap Share, choose Add to Home Screen, then tap Add.",
         duration: 9000,
       });
     } else {
-      toast.message("Install Everyday Retail from your browser menu", {
+      toast.message("Install Crud from your browser menu", {
         description: "Choose Install app or Add to Home screen in the browser menu.",
         duration: 8000,
       });
