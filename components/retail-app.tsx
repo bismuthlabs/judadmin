@@ -412,7 +412,7 @@ export function RetailApp() {
             </span>
             <span>
               <strong>Need a hand?</strong>
-              <small>Retail workspace</small>
+              {/* <small>Retail workspace</small> */}
             </span>
             <ChevronRight size={15} />
           </button>

@@ -14,9 +14,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#0e1724",
     categories: ["business", "productivity"],
     icons: [
-      { src: "/icons/crud-logo-no-wordmark-192.jpg", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icons/crud-logo-no-wordmark-512.jpg", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/crud-app-icon-192.jpg", sizes: "192x192", type: "image/jpeg", purpose: "any" },
+      { src: "/icons/crud-app-icon-512.jpg", sizes: "512x512", type: "image/jpeg", purpose: "any" },
+      { src: "/icons/crud-app-icon-512.jpg", sizes: "512x512", type: "image/jpeg", purpose: "maskable" },
     ],
   };
 }
